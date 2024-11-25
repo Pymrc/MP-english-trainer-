@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -17,288 +18,188 @@
         </header>
 
         <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-            <button onclick="showFlashcards()" class="p-4 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition">
+            <button onclick="showFlashcards()" class="p-4 bg-blue-500 text-white rounded-lg hover:bg-blue-600">
                 Flashcards
             </button>
-            <button onclick="showQuiz()" class="p-4 bg-gray-200 rounded-lg hover:bg-gray-300 transition">
+            <button onclick="alert('En développement')" class="p-4 bg-gray-200 rounded-lg hover:bg-gray-300">
                 Quiz
             </button>
-            <button onclick="showExam()" class="p-4 bg-gray-200 rounded-lg hover:bg-gray-300 transition">
+            <button onclick="alert('En développement')" class="p-4 bg-gray-200 rounded-lg hover:bg-gray-300">
                 Épreuves
             </button>
-            <button onclick="showPhrases()" class="p-4 bg-gray-200 rounded-lg hover:bg-gray-300 transition">
+            <button onclick="alert('En développement')" class="p-4 bg-gray-200 rounded-lg hover:bg-gray-300">
                 Phrases
             </button>
         </div>
 
-        <div id="content" class="bg-white p-6 rounded-lg shadow-lg">
+        <div id="content" class="bg-white p-6 rounded-lg shadow-lg min-h-[300px]">
             <!-- Le contenu sera chargé ici -->
         </div>
     </div>
 
     <script>
         // Base de données du vocabulaire
-        const vocabularyDB = {
-            essential: [
-                { id: 1, english: "nevertheless", french: "néanmoins", category: "Transition", usage: "Nevertheless, this argument overlooks crucial factors", mastered: false, lastReview: null },
-                { id: 2, english: "therefore", french: "par conséquent", category: "Transition", usage: "Therefore, we must take action", mastered: false, lastReview: null },
-                { id: 3, english: "however", french: "cependant", category: "Transition", usage: "However, there are other factors to consider", mastered: false, lastReview: null }
-            ],
-            advanced: [
-                { id: 101, english: "to shed light on", french: "éclairer/mettre en lumière", category: "Analysis", usage: "This research sheds light on the environmental impact", mastered: false, lastReview: null },
-                { id: 102, english: "to draw a parallel", french: "établir un parallèle", category: "Analysis", usage: "We can draw a parallel between these two phenomena", mastered: false, lastReview: null }
-            ],
-            academic: [
-                { id: 201, english: "methodology", french: "méthodologie", category: "Research", usage: "The methodology used in this study is innovative", mastered: false, lastReview: null },
-                { id: 202, english: "implementation", french: "mise en œuvre", category: "Research", usage: "The implementation of this solution requires careful planning", mastered: false, lastReview: null }
-            ]
-        };
+        const cards = [
+            {
+                id: 1,
+                english: "nevertheless",
+                french: "néanmoins",
+                usage: "Nevertheless, this argument is valid.",
+                category: "Transitions",
+                lastReview: null,
+                nextReview: null,
+                mastered: false
+            },
+            {
+                id: 2,
+                english: "therefore",
+                french: "par conséquent",
+                usage: "Therefore, we must consider all options.",
+                category: "Transitions",
+                lastReview: null,
+                nextReview: null,
+                mastered: false
+            },
+            {
+                id: 3,
+                english: "although",
+                french: "bien que",
+                usage: "Although the evidence is compelling.",
+                category: "Transitions",
+                lastReview: null,
+                nextReview: null,
+                mastered: false
+            }
+            // Ajoutez plus de cartes ici
+        ];
 
         // État de l'application
-        const state = {
-            currentMode: 'flashcards',
-            currentCategory: 'essential',
-            currentIndex: 0,
-            streak: 0,
-            mastered: 0,
-            showAnswer: false
-        };
+        let currentIndex = 0;
+        let showingAnswer = false;
+        let streak = 0;
 
-        // Système de révision espacée
-        function updateSpacedRepetition(cardId, quality) {
-            const card = findCard(cardId);
-            if (!card) return;
-
-            const now = new Date();
-            card.lastReview = now;
-            
-            if (quality >= 4) {
-                card.mastered = true;
-                updateStats(true);
-            } else {
-                card.mastered = false;
-                updateStats(false);
-            }
-
-            saveProgress();
-        }
-
-        // Gestionnaire de statistiques
-        function updateStats(success) {
-            if (success) {
-                state.streak++;
-                if (state.streak > getStoredStat('bestStreak')) {
-                    localStorage.setItem('bestStreak', state.streak.toString());
-                }
-            } else {
-                state.streak = 0;
-            }
-            
-            document.getElementById('streak').textContent = state.streak;
-            updateMasteredCount();
-        }
-
-        function updateMasteredCount() {
-            const totalCards = Object.values(vocabularyDB).flat().length;
-            const masteredCards = Object.values(vocabularyDB)
-                .flat()
-                .filter(card => card.mastered)
-                .length;
-            
-            state.mastered = masteredCards;
-            document.getElementById('mastered').textContent = masteredCards;
-            document.getElementById('total').textContent = totalCards;
-        }
-
-        // Fonctions d'affichage des cartes
-        function displayCard(card) {
+        // Fonctions principales
+        function displayCard(index) {
+            const card = cards[index];
             const content = document.getElementById('content');
-            if (state.showAnswer) {
+
+            if (showingAnswer) {
                 content.innerHTML = `
                     <div class="text-center">
                         <div class="text-2xl font-bold mb-4">${card.english}</div>
                         <div class="text-xl text-blue-600 mb-2">${card.french}</div>
                         <div class="text-gray-600 mb-6">${card.usage}</div>
                         <div class="flex justify-center gap-4 mb-6">
-                            <button onclick="rateCard(${card.id}, 1)" class="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600">
+                            <button onclick="rateCard(1)" class="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600">
                                 Difficile
                             </button>
-                            <button onclick="rateCard(${card.id}, 3)" class="px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600">
+                            <button onclick="rateCard(3)" class="px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600">
                                 Moyen
                             </button>
-                            <button onclick="rateCard(${card.id}, 5)" class="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600">
+                            <button onclick="rateCard(5)" class="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600">
                                 Facile
                             </button>
                         </div>
-                        <div class="flex justify-center gap-4">
-                            <button onclick="previousCard()" class="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600">
-                                ← Précédent
-                            </button>
-                            <button onclick="nextCard()" class="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600">
-                                Suivant →
-                            </button>
-                        </div>
+                        <div class="text-sm text-gray-500">${card.category}</div>
                     </div>
                 `;
             } else {
                 content.innerHTML = `
                     <div class="text-center">
                         <div class="text-2xl font-bold mb-4">${card.english}</div>
-                        <button onclick="toggleAnswer()" class="px-6 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
+                        <button onclick="showAnswer()" class="px-6 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
                             Voir la réponse
                         </button>
                     </div>
                 `;
             }
+
+            updateStats();
         }
 
-        // Navigation
-        function nextCard() {
-            const cards = Object.values(vocabularyDB)[state.currentCategory];
-            state.currentIndex = (state.currentIndex + 1) % cards.length;
-            state.showAnswer = false;
-            displayCard(cards[state.currentIndex]);
+        function showAnswer() {
+            showingAnswer = true;
+            displayCard(currentIndex);
         }
 
-        function previousCard() {
-            const cards = Object.values(vocabularyDB)[state.currentCategory];
-            state.currentIndex = (state.currentIndex - 1 + cards.length) % cards.length;
-            state.showAnswer = false;
-            displayCard(cards[state.currentIndex]);
-        }
+        function rateCard(rating) {
+            const card = cards[currentIndex];
+            const now = new Date();
 
-        function toggleAnswer() {
-            state.showAnswer = !state.showAnswer;
-            const cards = Object.values(vocabularyDB)[state.currentCategory];
-            displayCard(cards[state.currentIndex]);
-        }
-
-        // Mode Quiz
-        function startQuiz() {
-            const questions = generateQuizQuestions();
-            state.currentMode = 'quiz';
-            state.quizQuestions = questions;
-            state.currentQuestionIndex = 0;
-            showCurrentQuestion();
-        }
-
-        function generateQuizQuestions() {
-            const allCards = Object.values(vocabularyDB).flat();
-            return shuffleArray(allCards).slice(0, 10).map(card => {
-                const options = generateOptions(card, allCards);
-                return {
-                    question: card.english,
-                    correctAnswer: card.french,
-                    options: shuffleArray([card.french, ...options])
-                };
-            });
-        }
-
-        function showCurrentQuestion() {
-            const question = state.quizQuestions[state.currentQuestionIndex];
-            const content = document.getElementById('content');
-            content.innerHTML = `
-                <div class="text-center">
-                    <div class="mb-4">Question ${state.currentQuestionIndex + 1}/10</div>
-                    <div class="text-2xl font-bold mb-6">${question.question}</div>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        ${question.options.map((option, idx) => `
-                            <button onclick="checkAnswer('${option}')" class="p-4 bg-gray-100 rounded hover:bg-gray-200">
-                                ${option}
-                            </button>
-                        `).join('')}
-                    </div>
-                </div>
-            `;
-        }
-
-        // Mode Épreuves
-        function showExam() {
-            const content = document.getElementById('content');
-            content.innerHTML = `
-                <div class="space-y-6">
-                    <h2 class="text-xl font-bold">Préparation aux épreuves</h2>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <button onclick="startSynthesis()" class="p-4 bg-gray-100 rounded hover:bg-gray-200">
-                            <h3 class="font-bold">Synthèse de documents</h3>
-                            <p class="text-sm text-gray-600">Pratiquez la synthèse avec des documents types</p>
-                        </button>
-                        <button onclick="startEssay()" class="p-4 bg-gray-100 rounded hover:bg-gray-200">
-                            <h3 class="font-bold">Essay</h3>
-                            <p class="text-sm text-gray-600">Entraînez-vous à la rédaction d'essais</p>
-                        </button>
-                    </div>
-                </div>
-            `;
-        }
-
-        // Mode Constructeur de phrases
-        function showPhrases() {
-            const content = document.getElementById('content');
-            content.innerHTML = `
-                <div class="space-y-6">
-                    <h2 class="text-xl font-bold">Construction de phrases</h2>
-                    <div class="grid grid-cols-1 gap-4">
-                        <div class="border p-4 rounded">
-                            <h3 class="font-bold mb-2">Introduction</h3>
-                            <div class="flex flex-wrap gap-2">
-                                ${getPhraseBlocks('introduction').map(block => `
-                                    <button onclick="addPhraseBlock('${block}')" class="px-3 py-1 bg-blue-100 rounded hover:bg-blue-200">
-                                        ${block}
-                                    </button>
-                                `).join('')}
-                            </div>
-                        </div>
-                        <div id="constructedPhrase" class="p-4 bg-gray-50 rounded min-h-[100px]">
-                            Votre phrase apparaîtra ici...
-                        </div>
-                    </div>
-                </div>
-            `;
-        }
-
-        // Utilitaires
-        function shuffleArray(array) {
-            const newArray = [...array];
-            for (let i = newArray.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+            // Mise à jour du statut de maîtrise
+            if (rating >= 4) {
+                card.mastered = true;
+                streak++;
+            } else {
+                streak = 0;
             }
-            return newArray;
+
+            // Calcul de la prochaine révision
+            card.lastReview = now;
+            card.nextReview = calculateNextReview(rating);
+
+            // Passage à la carte suivante
+            showingAnswer = false;
+            currentIndex = (currentIndex + 1) % cards.length;
+            
+            // Sauvegarde et mise à jour
+            saveProgress();
+            displayCard(currentIndex);
         }
 
-        function findCard(cardId) {
-            return Object.values(vocabularyDB)
-                .flat()
-                .find(card => card.id === cardId);
+        function calculateNextReview(rating) {
+            const now = new Date();
+            let days;
+            
+            switch(rating) {
+                case 1: // Difficile
+                    days = 1;
+                    break;
+                case 3: // Moyen
+                    days = 3;
+                    break;
+                case 5: // Facile
+                    days = 7;
+                    break;
+                default:
+                    days = 1;
+            }
+
+            return new Date(now.getTime() + (days * 24 * 60 * 60 * 1000));
+        }
+
+        function updateStats() {
+            document.getElementById('streak').textContent = streak;
+            const masteredCount = cards.filter(card => card.mastered).length;
+            document.getElementById('mastered').textContent = masteredCount;
+            document.getElementById('total').textContent = cards.length;
         }
 
         function saveProgress() {
-            localStorage.setItem('progress', JSON.stringify({
-                vocabularyDB,
-                stats: {
-                    streak: state.streak,
-                    mastered: state.mastered
-                }
+            localStorage.setItem('flashcards-progress', JSON.stringify({
+                cards,
+                streak,
+                currentIndex
             }));
+        }
+
+        function loadProgress() {
+            const saved = localStorage.getItem('flashcards-progress');
+            if (saved) {
+                const data = JSON.parse(saved);
+                Object.assign(cards, data.cards);
+                streak = data.streak;
+                currentIndex = data.currentIndex;
+            }
         }
 
         // Initialisation
         function init() {
-            const savedProgress = localStorage.getItem('progress');
-            if (savedProgress) {
-                const progress = JSON.parse(savedProgress);
-                Object.assign(vocabularyDB, progress.vocabularyDB);
-                state.streak = progress.stats.streak;
-                state.mastered = progress.stats.mastered;
-            }
-            
-            updateMasteredCount();
-            const cards = Object.values(vocabularyDB)[state.currentCategory];
-            displayCard(cards[state.currentIndex]);
+            loadProgress();
+            displayCard(currentIndex);
         }
 
-        // Démarrage de l'application
+        // Démarrage
         init();
     </script>
 </body>
