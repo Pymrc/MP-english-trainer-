@@ -1,0 +1,57 @@
+html
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MP English Trainer</title>
+    <meta name="description" content="Application de préparation aux concours MP - Anglais">
+    <meta name="theme-color" content="#2563eb">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <link rel="manifest" href="manifest.json">
+</head>
+<body class="bg-gray-50">
+    <div id="app">
+        <nav class="bg-white shadow-lg">
+            <div class="max-w-7xl mx-auto px-4">
+                <div class="flex justify-between items-center py-4">
+                    <h1 class="text-xl font-bold">MP English Trainer</h1>
+                    <div id="stats" class="text-sm text-gray-600">
+                        <span id="streak">Série: 0</span>
+                        <span class="mx-2">|</span>
+                        <span id="mastered">Maîtrisés: 0/0</span>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <main class="max-w-7xl mx-auto px-4 py-6">
+            <div id="mode-selector" class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                <button class="mode-btn active p-4 rounded-lg bg-blue-500 text-white" data-mode="flashcards">
+                    Flashcards
+                </button>
+                <button class="mode-btn p-4 rounded-lg bg-gray-200" data-mode="quiz">
+                    Quiz
+                </button>
+                <button class="mode-btn p-4 rounded-lg bg-gray-200" data-mode="exam">
+                    Épreuves
+                </button>
+                <button class="mode-btn p-4 rounded-lg bg-gray-200" data-mode="builder">
+                    Phrases
+                </button>
+            </div>
+
+            <div id="content" class="bg-white rounded-lg shadow-lg p-6">
+                <!-- Le contenu dynamique sera chargé ici -->
+                <div id="loading" class="text-center py-12">
+                    <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
+                    <p class="mt-4 text-gray-600">Chargement...</p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
+
