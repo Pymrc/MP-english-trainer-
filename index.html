@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -11,9 +10,19 @@
     <div class="max-w-4xl mx-auto p-4">
         <header class="mb-6">
             <h1 class="text-2xl font-bold text-center">MP English Trainer</h1>
-            <div class="flex justify-between items-center mt-2 text-sm text-gray-600">
-                <div>Série actuelle: <span id="streak">0</span></div>
-                <div>Mots maîtrisés: <span id="mastered">0</span>/<span id="total">0</span></div>
+            <div class="flex justify-between items-center mt-2">
+                <div class="text-sm text-gray-600">Série actuelle: <span id="streak">0</span></div>
+                <div class="text-sm text-gray-600">Mots maîtrisés: <span id="mastered">0</span>/<span id="total">0</span></div>
+            </div>
+            <div class="mt-4">
+                <select id="categoryFilter" class="w-full p-2 border rounded bg-white" onchange="filterByCategory(this.value)">
+                    <option value="all">Toutes les catégories</option>
+                    <option value="transitions">Mots de liaison</option>
+                    <option value="academic">Vocabulaire académique</option>
+                    <option value="analysis">Analyse et synthèse</option>
+                    <option value="essay">Rédaction d'essai</option>
+                    <option value="scientific">Vocabulaire scientifique</option>
+                </select>
             </div>
         </header>
 
@@ -32,20 +41,23 @@
             </button>
         </div>
 
-        <div id="content" class="bg-white p-6 rounded-lg shadow-lg min-h-[300px]">
+        <div id="content" class="bg-white p-6 rounded-lg shadow-lg min-h-[400px]">
             <!-- Le contenu sera chargé ici -->
         </div>
     </div>
 
     <script>
-        // Base de données du vocabulaire
+        // Base de données du vocabulaire enrichie pour MP
         const cards = [
+            // Mots de liaison
             {
                 id: 1,
                 english: "nevertheless",
                 french: "néanmoins",
-                usage: "Nevertheless, this argument is valid.",
-                category: "Transitions",
+                usage: "Nevertheless, the evidence suggests otherwise.",
+                example: "The theory seems promising; nevertheless, further research is needed.",
+                category: "transitions",
+                difficulty: 2,
                 lastReview: null,
                 nextReview: null,
                 mastered: false
@@ -54,62 +66,170 @@
                 id: 2,
                 english: "therefore",
                 french: "par conséquent",
-                usage: "Therefore, we must consider all options.",
-                category: "Transitions",
+                usage: "Therefore, we can conclude that...",
+                example: "The experiment yielded consistent results; therefore, our hypothesis is validated.",
+                category: "transitions",
+                difficulty: 1,
                 lastReview: null,
                 nextReview: null,
                 mastered: false
             },
             {
                 id: 3,
-                english: "although",
-                french: "bien que",
-                usage: "Although the evidence is compelling.",
-                category: "Transitions",
+                english: "furthermore",
+                french: "de plus",
+                usage: "Furthermore, recent studies have shown...",
+                example: "The solution is cost-effective. Furthermore, it can be implemented immediately.",
+                category: "transitions",
+                difficulty: 1,
+                lastReview: null,
+                nextReview: null,
+                mastered: false
+            },
+            // Vocabulaire académique
+            {
+                id: 4,
+                english: "to substantiate",
+                french: "étayer/prouver",
+                usage: "To substantiate this claim with evidence",
+                example: "The research data substantiates our initial hypothesis.",
+                category: "academic",
+                difficulty: 3,
+                lastReview: null,
+                nextReview: null,
+                mastered: false
+            },
+            {
+                id: 5,
+                english: "to scrutinize",
+                french: "examiner minutieusement",
+                usage: "To scrutinize the experimental results",
+                example: "The methodology was scrutinized by peer reviewers.",
+                category: "academic",
+                difficulty: 3,
+                lastReview: null,
+                nextReview: null,
+                mastered: false
+            },
+            // Analyse et synthèse
+            {
+                id: 6,
+                english: "to draw a parallel",
+                french: "établir un parallèle",
+                usage: "To draw a parallel between two phenomena",
+                example: "We can draw a parallel between these technological developments.",
+                category: "analysis",
+                difficulty: 2,
+                lastReview: null,
+                nextReview: null,
+                mastered: false
+            },
+            {
+                id: 7,
+                english: "to shed light on",
+                french: "éclairer/mettre en lumière",
+                usage: "This discovery sheds light on the mechanism",
+                example: "Recent findings shed light on this complex issue.",
+                category: "analysis",
+                difficulty: 2,
+                lastReview: null,
+                nextReview: null,
+                mastered: false
+            },
+            // Rédaction d'essai
+            {
+                id: 8,
+                english: "to put forward",
+                french: "avancer (une idée)",
+                usage: "To put forward an argument",
+                example: "The author puts forward several compelling arguments.",
+                category: "essay",
+                difficulty: 2,
+                lastReview: null,
+                nextReview: null,
+                mastered: false
+            },
+            {
+                id: 9,
+                english: "to acknowledge",
+                french: "reconnaître/admettre",
+                usage: "To acknowledge the limitations",
+                example: "We must acknowledge that this approach has some drawbacks.",
+                category: "essay",
+                difficulty: 2,
+                lastReview: null,
+                nextReview: null,
+                mastered: false
+            },
+            // Vocabulaire scientifique
+            {
+                id: 10,
+                english: "breakthrough",
+                french: "percée/avancée majeure",
+                usage: "A significant breakthrough in research",
+                example: "This breakthrough could revolutionize quantum computing.",
+                category: "scientific",
+                difficulty: 2,
+                lastReview: null,
+                nextReview: null,
+                mastered: false
+            },
+            {
+                id: 11,
+                english: "to postulate",
+                french: "postuler",
+                usage: "To postulate a new theory",
+                example: "Einstein postulated that the speed of light is constant.",
+                category: "scientific",
+                difficulty: 3,
                 lastReview: null,
                 nextReview: null,
                 mastered: false
             }
-            // Ajoutez plus de cartes ici
         ];
 
         // État de l'application
         let currentIndex = 0;
         let showingAnswer = false;
         let streak = 0;
+        let filteredCards = [...cards];
 
         // Fonctions principales
         function displayCard(index) {
-            const card = cards[index];
+            const card = filteredCards[index];
             const content = document.getElementById('content');
 
             if (showingAnswer) {
                 content.innerHTML = `
                     <div class="text-center">
+                        <div class="text-xs text-gray-500 mb-2">${card.category.toUpperCase()}</div>
                         <div class="text-2xl font-bold mb-4">${card.english}</div>
                         <div class="text-xl text-blue-600 mb-2">${card.french}</div>
-                        <div class="text-gray-600 mb-6">${card.usage}</div>
+                        <div class="text-gray-600 mb-4">${card.usage}</div>
+                        <div class="text-gray-600 mb-6 italic">"${card.example}"</div>
                         <div class="flex justify-center gap-4 mb-6">
-                            <button onclick="rateCard(1)" class="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600">
+                            <button onclick="rateCard(1)" class="px-6 py-3 bg-red-500 text-white rounded hover:bg-red-600 transition">
                                 Difficile
                             </button>
-                            <button onclick="rateCard(3)" class="px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600">
+                            <button onclick="rateCard(3)" class="px-6 py-3 bg-yellow-500 text-white rounded hover:bg-yellow-600 transition">
                                 Moyen
                             </button>
-                            <button onclick="rateCard(5)" class="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600">
+                            <button onclick="rateCard(5)" class="px-6 py-3 bg-green-500 text-white rounded hover:bg-green-600 transition">
                                 Facile
                             </button>
                         </div>
-                        <div class="text-sm text-gray-500">${card.category}</div>
+                        <div class="text-sm text-gray-500">Carte ${index + 1}/${filteredCards.length}</div>
                     </div>
                 `;
             } else {
                 content.innerHTML = `
                     <div class="text-center">
-                        <div class="text-2xl font-bold mb-4">${card.english}</div>
-                        <button onclick="showAnswer()" class="px-6 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
+                        <div class="text-xs text-gray-500 mb-2">${card.category.toUpperCase()}</div>
+                        <div class="text-2xl font-bold mb-6">${card.english}</div>
+                        <button onclick="showAnswer()" class="px-6 py-3 bg-blue-500 text-white rounded hover:bg-blue-600 transition">
                             Voir la réponse
                         </button>
+                        <div class="mt-4 text-sm text-gray-500">Carte ${index + 1}/${filteredCards.length}</div>
                     </div>
                 `;
             }
@@ -123,7 +243,7 @@
         }
 
         function rateCard(rating) {
-            const card = cards[currentIndex];
+            const card = filteredCards[currentIndex];
             const now = new Date();
 
             // Mise à jour du statut de maîtrise
@@ -136,36 +256,43 @@
 
             // Calcul de la prochaine révision
             card.lastReview = now;
-            card.nextReview = calculateNextReview(rating);
+            card.nextReview = calculateNextReview(rating, card.difficulty);
 
             // Passage à la carte suivante
             showingAnswer = false;
-            currentIndex = (currentIndex + 1) % cards.length;
+            currentIndex = (currentIndex + 1) % filteredCards.length;
             
-            // Sauvegarde et mise à jour
             saveProgress();
             displayCard(currentIndex);
         }
 
-        function calculateNextReview(rating) {
+        function calculateNextReview(rating, difficulty) {
             const now = new Date();
             let days;
             
-            switch(rating) {
-                case 1: // Difficile
-                    days = 1;
-                    break;
-                case 3: // Moyen
-                    days = 3;
-                    break;
-                case 5: // Facile
-                    days = 7;
-                    break;
-                default:
-                    days = 1;
+            // Ajustement basé sur la difficulté et la note
+            if (rating === 5) {
+                days = 7 * difficulty;
+            } else if (rating === 3) {
+                days = 3 * difficulty;
+            } else {
+                days = Math.max(1, difficulty);
             }
 
             return new Date(now.getTime() + (days * 24 * 60 * 60 * 1000));
+        }
+
+        function filterByCategory(category) {
+            currentIndex = 0;
+            showingAnswer = false;
+            
+            if (category === 'all') {
+                filteredCards = [...cards];
+            } else {
+                filteredCards = cards.filter(card => card.category === category);
+            }
+            
+            displayCard(currentIndex);
         }
 
         function updateStats() {
@@ -187,15 +314,24 @@
             const saved = localStorage.getItem('flashcards-progress');
             if (saved) {
                 const data = JSON.parse(saved);
-                Object.assign(cards, data.cards);
+                // Mise à jour des cartes avec les données sauvegardées
+                data.cards.forEach((savedCard) => {
+                    const card = cards.find(c => c.id === savedCard.id);
+                    if (card) {
+                        card.mastered = savedCard.mastered;
+                        card.lastReview = savedCard.lastReview;
+                        card.nextReview = savedCard.nextReview;
+                    }
+                });
                 streak = data.streak;
-                currentIndex = data.currentIndex;
+                currentIndex = data.currentIndex % cards.length;
             }
         }
 
         // Initialisation
         function init() {
             loadProgress();
+            filteredCards = [...cards];
             displayCard(currentIndex);
         }
 
