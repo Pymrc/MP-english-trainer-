@@ -1,0 +1,207 @@
+/* Base Styles and Variables */
+:root {
+    --primary-blue: #2563eb;
+    --primary-hover: #1d4ed8;
+    --success-green: #10b981;
+    --warning-yellow: #f59e0b;
+    --danger-red: #ef4444;
+    --text-primary: #1f2937;
+    --text-secondary: #4b5563;
+    --bg-light: #f8fafc;
+}
+
+/* Custom Animations */
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.05);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Enhanced Components */
+.stat-card {
+    @apply bg-white rounded-xl shadow-sm p-6 transition-all duration-300;
+    animation: slideIn 0.3s ease-out;
+}
+
+.stat-card:hover {
+    @apply transform -translate-y-1 shadow-md;
+}
+
+.stat-card h3 {
+    @apply text-sm font-medium text-gray-500 mb-2;
+}
+
+.stat-card .value {
+    @apply text-3xl font-bold text-gray-900 mb-1;
+}
+
+.stat-card .subtitle {
+    @apply text-sm text-gray-500;
+}
+
+/* Progress Bars */
+.progress-container {
+    @apply w-full h-2 bg-gray-100 rounded-full overflow-hidden;
+}
+
+.progress-bar {
+    @apply h-full bg-blue-600 transition-all duration-500 ease-out;
+    transform-origin: left;
+}
+
+/* Mode Cards */
+.mode-card {
+    @apply bg-white rounded-xl shadow-sm p-6 text-left transition-all duration-300;
+    border: 2px solid transparent;
+}
+
+.mode-card:hover {
+    @apply transform -translate-y-1 shadow-md;
+    border-color: var(--primary-blue);
+}
+
+.mode-card.active {
+    @apply bg-blue-50;
+    border-color: var(--primary-blue);
+}
+
+.mode-card .mode-title {
+    @apply text-lg font-semibold mb-1;
+}
+
+.mode-card .mode-description {
+    @apply text-sm text-gray-500;
+}
+
+/* Weekly Calendar */
+.day-circle {
+    @apply w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300;
+}
+
+.day-circle.completed {
+    @apply bg-green-500 text-white;
+}
+
+.day-circle.current {
+    @apply bg-blue-500 text-white;
+}
+
+.day-circle.future {
+    @apply bg-gray-100;
+}
+
+/* Loading Spinner */
+.loading-spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid var(--primary-blue);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+/* Study Area Transitions */
+#study-area {
+    @apply transition-all duration-300 ease-in-out;
+}
+
+.card-container {
+    perspective: 1000px;
+}
+
+.card {
+    transition: transform 0.6s;
+    transform-style: preserve-3d;
+}
+
+.card.flipped {
+    transform: rotateY(180deg);
+}
+
+/* Custom Buttons */
+.btn-primary {
+    @apply bg-blue-600 text-white px-6 py-2 rounded-lg font-medium 
+           hover:bg-blue-700 transition-all duration-300 
+           focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2;
+}
+
+.btn-secondary {
+    @apply bg-gray-100 text-gray-700 px-6 py-2 rounded-lg font-medium 
+           hover:bg-gray-200 transition-all duration-300 
+           focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2;
+}
+
+/* Success Animation */
+@keyframes successPulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+    }
+    70% {
+        box-shadow: 0 0 0 10px rgba(16, 185, 129, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+    }
+}
+
+.success-animation {
+    animation: successPulse 1.5s infinite;
+}
+
+/* Responsive Design Adjustments */
+@media (max-width: 768px) {
+    .stat-card {
+        @apply p-4;
+    }
+
+    .stat-card .value {
+        @apply text-2xl;
+    }
+
+    .mode-card {
+        @apply p-4;
+    }
+
+    .mode-card .mode-title {
+        @apply text-base;
+    }
+}
+
+/* Print Styles */
+@media print {
+    .no-print {
+        display: none;
+    }
+
+    body {
+        background: white;
+    }
+
+    #study-area {
+        border: none;
+        box-shadow: none;
+    }
+}
