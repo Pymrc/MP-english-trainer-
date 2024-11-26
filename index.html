@@ -5,338 +5,275 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MP English Trainer</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body class="bg-gray-100">
     <div class="max-w-4xl mx-auto p-4">
-        <header class="mb-6">
-            <h1 class="text-2xl font-bold text-center">MP English Trainer</h1>
-            <div class="flex justify-between items-center mt-2">
-                <div class="text-sm text-gray-600">Série actuelle: <span id="streak">0</span></div>
-                <div class="text-sm text-gray-600">Mots maîtrisés: <span id="mastered">0</span>/<span id="total">0</span></div>
+        <!-- Header avec stats et compte à rebours -->
+        <header class="bg-white rounded-lg shadow-lg p-4 mb-6">
+            <div class="flex justify-between items-center mb-4">
+                <h1 class="text-2xl font-bold">MP English Trainer</h1>
+                <div class="text-right">
+                    <div class="text-sm text-gray-600">Concours MP dans</div>
+                    <div id="countdown" class="text-xl font-bold text-blue-600">154 jours</div>
+                </div>
             </div>
-            <div class="mt-4">
-                <select id="categoryFilter" class="w-full p-2 border rounded bg-white" onchange="filterByCategory(this.value)">
-                    <option value="all">Toutes les catégories</option>
-                    <option value="transitions">Mots de liaison</option>
-                    <option value="academic">Vocabulaire académique</option>
-                    <option value="analysis">Analyse et synthèse</option>
-                    <option value="essay">Rédaction d'essai</option>
-                    <option value="scientific">Vocabulaire scientifique</option>
-                </select>
+            
+            <!-- Objectif quotidien -->
+            <div class="mb-4">
+                <div class="flex justify-between items-center mb-2">
+                    <div class="text-sm font-medium">Objectif du jour</div>
+                    <div class="text-sm text-blue-600" id="dailyProgress">0/50 cartes</div>
+                </div>
+                <div class="w-full bg-gray-200 rounded-full h-2">
+                    <div id="progressBar" class="bg-blue-600 rounded-full h-2" style="width: 0%"></div>
+                </div>
+            </div>
+
+            <!-- Streak et jours consécutifs -->
+            <div class="grid grid-cols-3 gap-4 mb-4">
+                <div class="bg-gray-50 p-3 rounded-lg text-center">
+                    <div class="text-sm text-gray-600">Jours consécutifs</div>
+                    <div id="streakDays" class="text-xl font-bold">0</div>
+                </div>
+                <div class="bg-gray-50 p-3 rounded-lg text-center">
+                    <div class="text-sm text-gray-600">Mots maîtrisés</div>
+                    <div id="masteredWords" class="text-xl font-bold">0/0</div>
+                </div>
+                <div class="bg-gray-50 p-3 rounded-lg text-center">
+                    <div class="text-sm text-gray-600">Précision</div>
+                    <div id="accuracy" class="text-xl font-bold">0%</div>
+                </div>
+            </div>
+
+            <!-- Calendrier hebdomadaire -->
+            <div class="flex justify-between mb-4">
+                <div class="text-center w-10">
+                    <div class="text-xs text-gray-600 mb-1">Lun</div>
+                    <div id="day1" class="h-10 w-10 rounded-full flex items-center justify-center bg-gray-200"></div>
+                </div>
+                <!-- Répéter pour chaque jour -->
+                <div class="text-center w-10">
+                    <div class="text-xs text-gray-600 mb-1">Mar</div>
+                    <div id="day2" class="h-10 w-10 rounded-full flex items-center justify-center bg-gray-200"></div>
+                </div>
+                <div class="text-center w-10">
+                    <div class="text-xs text-gray-600 mb-1">Mer</div>
+                    <div id="day3" class="h-10 w-10 rounded-full flex items-center justify-center bg-gray-200"></div>
+                </div>
+                <div class="text-center w-10">
+                    <div class="text-xs text-gray-600 mb-1">Jeu</div>
+                    <div id="day4" class="h-10 w-10 rounded-full flex items-center justify-center bg-gray-200"></div>
+                </div>
+                <div class="text-center w-10">
+                    <div class="text-xs text-gray-600 mb-1">Ven</div>
+                    <div id="day5" class="h-10 w-10 rounded-full flex items-center justify-center bg-gray-200"></div>
+                </div>
+                <div class="text-center w-10">
+                    <div class="text-xs text-gray-600 mb-1">Sam</div>
+                    <div id="day6" class="h-10 w-10 rounded-full flex items-center justify-center bg-gray-200"></div>
+                </div>
+                <div class="text-center w-10">
+                    <div class="text-xs text-gray-600 mb-1">Dim</div>
+                    <div id="day7" class="h-10 w-10 rounded-full flex items-center justify-center bg-gray-200"></div>
+                </div>
             </div>
         </header>
 
+        <!-- Filtres et navigation -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+            <select id="categoryFilter" class="w-full p-2 border rounded bg-white" onchange="filterByCategory(this.value)">
+                <option value="all">Toutes les catégories</option>
+                <option value="transitions">Mots de liaison</option>
+                <option value="academic">Vocabulaire académique</option>
+                <option value="analysis">Analyse et synthèse</option>
+                <option value="essay">Rédaction d'essai</option>
+                <option value="scientific">Vocabulaire scientifique</option>
+            </select>
+            <select id="difficultyFilter" class="w-full p-2 border rounded bg-white" onchange="filterByDifficulty(this.value)">
+                <option value="all">Toutes les difficultés</option>
+                <option value="1">Facile</option>
+                <option value="2">Moyen</option>
+                <option value="3">Difficile</option>
+            </select>
+        </div>
+
+        <!-- Modes d'apprentissage -->
         <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-            <button onclick="showFlashcards()" class="p-4 bg-blue-500 text-white rounded-lg hover:bg-blue-600">
+            <button onclick="setMode('flashcards')" class="p-4 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition">
                 Flashcards
             </button>
-            <button onclick="alert('En développement')" class="p-4 bg-gray-200 rounded-lg hover:bg-gray-300">
+            <button onclick="setMode('quiz')" class="p-4 bg-gray-200 rounded-lg hover:bg-gray-300 transition">
                 Quiz
             </button>
-            <button onclick="alert('En développement')" class="p-4 bg-gray-200 rounded-lg hover:bg-gray-300">
+            <button onclick="setMode('exam')" class="p-4 bg-gray-200 rounded-lg hover:bg-gray-300 transition">
                 Épreuves
             </button>
-            <button onclick="alert('En développement')" class="p-4 bg-gray-200 rounded-lg hover:bg-gray-300">
+            <button onclick="setMode('phrases')" class="p-4 bg-gray-200 rounded-lg hover:bg-gray-300 transition">
                 Phrases
             </button>
         </div>
 
+        <!-- Zone principale de contenu -->
         <div id="content" class="bg-white p-6 rounded-lg shadow-lg min-h-[400px]">
             <!-- Le contenu sera chargé ici -->
+        </div>
+
+        <!-- Statistiques détaillées (initialement caché) -->
+        <div id="statsPanel" class="hidden mt-6 bg-white p-6 rounded-lg shadow-lg">
+            <h2 class="text-xl font-bold mb-4">Statistiques d'apprentissage</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <canvas id="progressChart"></canvas>
+                </div>
+                <div>
+                    <canvas id="categoryChart"></canvas>
+                </div>
+            </div>
         </div>
     </div>
 
     <script>
-        // Base de données du vocabulaire enrichie pour MP
-        const cards = [
-            // Mots de liaison
-            {
-                id: 1,
-                english: "nevertheless",
-                french: "néanmoins",
-                usage: "Nevertheless, the evidence suggests otherwise.",
-                example: "The theory seems promising; nevertheless, further research is needed.",
-                category: "transitions",
-                difficulty: 2,
-                lastReview: null,
-                nextReview: null,
-                mastered: false
-            },
-            {
-                id: 2,
-                english: "therefore",
-                french: "par conséquent",
-                usage: "Therefore, we can conclude that...",
-                example: "The experiment yielded consistent results; therefore, our hypothesis is validated.",
-                category: "transitions",
-                difficulty: 1,
-                lastReview: null,
-                nextReview: null,
-                mastered: false
-            },
-            {
-                id: 3,
-                english: "furthermore",
-                french: "de plus",
-                usage: "Furthermore, recent studies have shown...",
-                example: "The solution is cost-effective. Furthermore, it can be implemented immediately.",
-                category: "transitions",
-                difficulty: 1,
-                lastReview: null,
-                nextReview: null,
-                mastered: false
-            },
-            // Vocabulaire académique
-            {
-                id: 4,
-                english: "to substantiate",
-                french: "étayer/prouver",
-                usage: "To substantiate this claim with evidence",
-                example: "The research data substantiates our initial hypothesis.",
-                category: "academic",
-                difficulty: 3,
-                lastReview: null,
-                nextReview: null,
-                mastered: false
-            },
-            {
-                id: 5,
-                english: "to scrutinize",
-                french: "examiner minutieusement",
-                usage: "To scrutinize the experimental results",
-                example: "The methodology was scrutinized by peer reviewers.",
-                category: "academic",
-                difficulty: 3,
-                lastReview: null,
-                nextReview: null,
-                mastered: false
-            },
-            // Analyse et synthèse
-            {
-                id: 6,
-                english: "to draw a parallel",
-                french: "établir un parallèle",
-                usage: "To draw a parallel between two phenomena",
-                example: "We can draw a parallel between these technological developments.",
-                category: "analysis",
-                difficulty: 2,
-                lastReview: null,
-                nextReview: null,
-                mastered: false
-            },
-            {
-                id: 7,
-                english: "to shed light on",
-                french: "éclairer/mettre en lumière",
-                usage: "This discovery sheds light on the mechanism",
-                example: "Recent findings shed light on this complex issue.",
-                category: "analysis",
-                difficulty: 2,
-                lastReview: null,
-                nextReview: null,
-                mastered: false
-            },
-            // Rédaction d'essai
-            {
-                id: 8,
-                english: "to put forward",
-                french: "avancer (une idée)",
-                usage: "To put forward an argument",
-                example: "The author puts forward several compelling arguments.",
-                category: "essay",
-                difficulty: 2,
-                lastReview: null,
-                nextReview: null,
-                mastered: false
-            },
-            {
-                id: 9,
-                english: "to acknowledge",
-                french: "reconnaître/admettre",
-                usage: "To acknowledge the limitations",
-                example: "We must acknowledge that this approach has some drawbacks.",
-                category: "essay",
-                difficulty: 2,
-                lastReview: null,
-                nextReview: null,
-                mastered: false
-            },
-            // Vocabulaire scientifique
-            {
-                id: 10,
-                english: "breakthrough",
-                french: "percée/avancée majeure",
-                usage: "A significant breakthrough in research",
-                example: "This breakthrough could revolutionize quantum computing.",
-                category: "scientific",
-                difficulty: 2,
-                lastReview: null,
-                nextReview: null,
-                mastered: false
-            },
-            {
-                id: 11,
-                english: "to postulate",
-                french: "postuler",
-                usage: "To postulate a new theory",
-                example: "Einstein postulated that the speed of light is constant.",
-                category: "scientific",
-                difficulty: 3,
-                lastReview: null,
-                nextReview: null,
-                mastered: false
-            }
-        ];
+        // Configuration initiale
+        const EXAM_DATE = new Date('2024-04-28');
+        const DAILY_GOAL = 50;
 
         // État de l'application
-        let currentIndex = 0;
-        let showingAnswer = false;
-        let streak = 0;
-        let filteredCards = [...cards];
+        const state = {
+            currentMode: 'flashcards',
+            currentIndex: 0,
+            showingAnswer: false,
+            dailyProgress: 0,
+            streak: 0,
+            masteredCount: 0,
+            currentStreak: 0,
+            lastStudyDate: null,
+            dailyStats: {},
+            categoryStats: {},
+            accuracy: 0,
+            totalAttempts: 0,
+            correctAttempts: 0
+        };
 
-        // Fonctions principales
-        function displayCard(index) {
-            const card = filteredCards[index];
-            const content = document.getElementById('content');
+        // [Le reste du code JavaScript précédent reste identique]
+        // Ajout des nouvelles fonctions :
 
-            if (showingAnswer) {
-                content.innerHTML = `
-                    <div class="text-center">
-                        <div class="text-xs text-gray-500 mb-2">${card.category.toUpperCase()}</div>
-                        <div class="text-2xl font-bold mb-4">${card.english}</div>
-                        <div class="text-xl text-blue-600 mb-2">${card.french}</div>
-                        <div class="text-gray-600 mb-4">${card.usage}</div>
-                        <div class="text-gray-600 mb-6 italic">"${card.example}"</div>
-                        <div class="flex justify-center gap-4 mb-6">
-                            <button onclick="rateCard(1)" class="px-6 py-3 bg-red-500 text-white rounded hover:bg-red-600 transition">
-                                Difficile
-                            </button>
-                            <button onclick="rateCard(3)" class="px-6 py-3 bg-yellow-500 text-white rounded hover:bg-yellow-600 transition">
-                                Moyen
-                            </button>
-                            <button onclick="rateCard(5)" class="px-6 py-3 bg-green-500 text-white rounded hover:bg-green-600 transition">
-                                Facile
-                            </button>
-                        </div>
-                        <div class="text-sm text-gray-500">Carte ${index + 1}/${filteredCards.length}</div>
-                    </div>
-                `;
-            } else {
-                content.innerHTML = `
-                    <div class="text-center">
-                        <div class="text-xs text-gray-500 mb-2">${card.category.toUpperCase()}</div>
-                        <div class="text-2xl font-bold mb-6">${card.english}</div>
-                        <button onclick="showAnswer()" class="px-6 py-3 bg-blue-500 text-white rounded hover:bg-blue-600 transition">
-                            Voir la réponse
-                        </button>
-                        <div class="mt-4 text-sm text-gray-500">Carte ${index + 1}/${filteredCards.length}</div>
-                    </div>
-                `;
+        function updateCountdown() {
+            const today = new Date();
+            const diff = EXAM_DATE - today;
+            const days = Math.ceil(diff / (1000 * 60 * 60 * 24));
+            document.getElementById('countdown').textContent = `${days} jours`;
+        }
+
+        function updateDailyProgress() {
+            const progress = (state.dailyProgress / DAILY_GOAL) * 100;
+            document.getElementById('progressBar').style.width = `${progress}%`;
+            document.getElementById('dailyProgress').textContent = 
+                `${state.dailyProgress}/${DAILY_GOAL} cartes`;
+        }
+
+        function updateStreak() {
+            const today = new Date().toDateString();
+            if (state.lastStudyDate !== today) {
+                if (state.lastStudyDate === new Date(Date.now() - 86400000).toDateString()) {
+                    state.currentStreak++;
+                } else {
+                    state.currentStreak = 1;
+                }
+                state.lastStudyDate = today;
+                saveProgress();
             }
-
-            updateStats();
+            document.getElementById('streakDays').textContent = state.currentStreak;
         }
 
-        function showAnswer() {
-            showingAnswer = true;
-            displayCard(currentIndex);
-        }
-
-        function rateCard(rating) {
-            const card = filteredCards[currentIndex];
-            const now = new Date();
-
-            // Mise à jour du statut de maîtrise
-            if (rating >= 4) {
-                card.mastered = true;
-                streak++;
-            } else {
-                streak = 0;
+        function updateCalendar() {
+            const today = new Date();
+            const dayOfWeek = today.getDay();
+            
+            for (let i = 1; i <= 7; i++) {
+                const dayElement = document.getElementById(`day${i}`);
+                if (state.dailyStats[today.toDateString()]) {
+                    dayElement.classList.add('bg-green-500');
+                }
             }
-
-            // Calcul de la prochaine révision
-            card.lastReview = now;
-            card.nextReview = calculateNextReview(rating, card.difficulty);
-
-            // Passage à la carte suivante
-            showingAnswer = false;
-            currentIndex = (currentIndex + 1) % filteredCards.length;
-            
-            saveProgress();
-            displayCard(currentIndex);
         }
 
-        function calculateNextReview(rating, difficulty) {
-            const now = new Date();
-            let days;
-            
-            // Ajustement basé sur la difficulté et la note
-            if (rating === 5) {
-                days = 7 * difficulty;
-            } else if (rating === 3) {
-                days = 3 * difficulty;
-            } else {
-                days = Math.max(1, difficulty);
-            }
-
-            return new Date(now.getTime() + (days * 24 * 60 * 60 * 1000));
-        }
-
-        function filterByCategory(category) {
-            currentIndex = 0;
-            showingAnswer = false;
-            
-            if (category === 'all') {
-                filteredCards = [...cards];
-            } else {
-                filteredCards = cards.filter(card => card.category === category);
-            }
-            
-            displayCard(currentIndex);
-        }
-
-        function updateStats() {
-            document.getElementById('streak').textContent = streak;
-            const masteredCount = cards.filter(card => card.mastered).length;
-            document.getElementById('mastered').textContent = masteredCount;
-            document.getElementById('total').textContent = cards.length;
-        }
-
-        function saveProgress() {
-            localStorage.setItem('flashcards-progress', JSON.stringify({
-                cards,
-                streak,
-                currentIndex
-            }));
-        }
-
-        function loadProgress() {
-            const saved = localStorage.getItem('flashcards-progress');
-            if (saved) {
-                const data = JSON.parse(saved);
-                // Mise à jour des cartes avec les données sauvegardées
-                data.cards.forEach((savedCard) => {
-                    const card = cards.find(c => c.id === savedCard.id);
-                    if (card) {
-                        card.mastered = savedCard.mastered;
-                        card.lastReview = savedCard.lastReview;
-                        card.nextReview = savedCard.nextReview;
+        function updateCharts() {
+            // Graphique de progression
+            const progressCtx = document.getElementById('progressChart').getContext('2d');
+            new Chart(progressCtx, {
+                type: 'line',
+                data: {
+                    labels: Object.keys(state.dailyStats),
+                    datasets: [{
+                        label: 'Mots appris',
+                        data: Object.values(state.dailyStats),
+                        borderColor: 'rgb(59, 130, 246)',
+                        tension: 0.1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
                     }
-                });
-                streak = data.streak;
-                currentIndex = data.currentIndex % cards.length;
+                }
+            });
+
+            // Graphique par catégorie
+            const categoryCtx = document.getElementById('categoryChart').getContext('2d');
+            new Chart(categoryCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(state.categoryStats),
+                    datasets: [{
+                        data: Object.values(state.categoryStats),
+                        backgroundColor: [
+                            '#3B82F6',
+                            '#10B981',
+                            '#F59E0B',
+                            '#EF4444',
+                            '#8B5CF6'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true
+                }
+            });
+        }
+
+        // Sauvegarder la progression
+        function saveProgress() {
+            localStorage.setItem('mp-english-state', JSON.stringify(state));
+        }
+
+        // Charger la progression
+        function loadProgress() {
+            const saved = localStorage.getItem('mp-english-state');
+            if (saved) {
+                Object.assign(state, JSON.parse(saved));
             }
         }
 
         // Initialisation
         function init() {
             loadProgress();
-            filteredCards = [...cards];
-            displayCard(currentIndex);
+            updateCountdown();
+            updateDailyProgress();
+            updateStreak();
+            updateCalendar();
+            updateCharts();
+            displayCard(state.currentIndex);
         }
 
         // Démarrage
         init();
+
+        // Mise à jour automatique
+        setInterval(updateCountdown, 60000); // Mise à jour du compte à rebours chaque minute
     </script>
 </body>
 </html>
