@@ -4,297 +4,119 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MP English Trainer</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Base stylesheets -->
+    <link href="https://cdn.tailwindcss.com" rel="stylesheet">
+    <link href="base.css" rel="stylesheet">
+    <!-- Analytics -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <style>
-        .fade-enter {
-            opacity: 0;
-            transform: translateY(10px);
-        }
-        .fade-enter-active {
-            opacity: 1;
-            transform: translateY(0);
-            transition: all 0.3s ease;
-        }
-        .progress-ring {
-            transition: stroke-dashoffset 0.35s;
-            transform: rotate(-90deg);
-            transform-origin: 50% 50%;
-        }
-    </style>
 </head>
-<body class="bg-slate-100">
-    <div class="max-w-4xl mx-auto p-4">
-        <!-- Header avec Stats et Progression -->
-        <div class="bg-white rounded-xl shadow-sm p-6 mb-6">
-            <div class="flex justify-between items-start mb-6">
-                <h1 class="text-2xl font-bold text-blue-600">MP English Trainer</h1>
-                <div class="text-right bg-blue-50 px-4 py-2 rounded-lg">
-                    <div class="text-sm text-blue-600">Concours MP dans</div>
-                    <div id="countdown" class="text-2xl font-bold text-blue-700">-212 jours</div>
+<body class="bg-slate-50 antialiased">
+    <div id="app" class="min-h-screen flex flex-col">
+        <!-- Top Navigation -->
+        <nav class="bg-white border-b border-gray-100">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between h-16">
+                    <div class="flex items-center">
+                        <span class="text-2xl font-bold text-blue-600">MP English Trainer</span>
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <div id="countdown-display" class="text-right">
+                            <div class="text-sm text-gray-600">Concours MP dans</div>
+                            <div class="text-xl font-bold text-blue-700 countdown-value">-212 jours</div>
+                        </div>
+                        <button id="settings-btn" class="p-2 rounded-full hover:bg-gray-100">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Main Content Area -->
+        <div class="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <!-- Progress Overview -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <div class="stat-card">
+                    <h3>Jours consécutifs</h3>
+                    <div class="value" id="streak-display">1</div>
+                    <div class="subtitle">Record: <span id="best-streak">1</span></div>
+                </div>
+                <div class="stat-card">
+                    <h3>Mots maîtrisés</h3>
+                    <div class="value" id="mastered-display">0/0</div>
+                    <div class="progress-bar">
+                        <div class="progress" style="width: 0%"></div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <h3>Précision</h3>
+                    <div class="value" id="accuracy-display">0%</div>
+                    <div class="subtitle">Réponses correctes</div>
                 </div>
             </div>
 
-            <!-- Objectif journalier -->
-            <div class="mb-6">
-                <div class="flex justify-between items-baseline mb-2">
-                    <div class="text-sm font-medium text-gray-700">Objectif du jour</div>
-                    <div class="text-sm text-blue-600" id="daily-goal">
-                        <span id="current-cards">0</span>/<span id="target-cards">50</span> cartes
-                    </div>
+            <!-- Daily Goal -->
+            <div class="bg-white rounded-xl shadow-sm p-6 mb-8">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-lg font-semibold">Objectif du jour</h2>
+                    <span class="text-blue-600"><span id="current-progress">0</span>/50 cartes</span>
                 </div>
-                <div class="h-3 relative max-w-xl rounded-full overflow-hidden">
-                    <div class="w-full h-full bg-gray-200 absolute"></div>
-                    <div id="progress-bar" class="transition-all duration-500 h-full bg-gradient-to-r from-blue-500 to-blue-600 relative" style="width: 0%"></div>
+                <div class="progress-container">
+                    <div id="daily-progress" class="progress-bar"></div>
                 </div>
             </div>
 
-            <!-- Statistiques principales -->
-            <div class="grid grid-cols-3 gap-6 mb-6">
-                <div class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-4 text-center">
-                    <div class="text-blue-800 mb-1">Jours consécutifs</div>
-                    <div id="streak" class="text-3xl font-bold text-blue-700">1</div>
-                    <div class="text-xs text-blue-600 mt-1">Record: <span id="best-streak">1</span></div>
-                </div>
-                <div class="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-4 text-center">
-                    <div class="text-green-800 mb-1">Mots maîtrisés</div>
-                    <div id="mastered" class="text-3xl font-bold text-green-700">0/0</div>
-                    <div class="text-xs text-green-600 mt-1">Progression globale</div>
-                </div>
-                <div class="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-4 text-center">
-                    <div class="text-purple-800 mb-1">Précision</div>
-                    <div id="accuracy" class="text-3xl font-bold text-purple-700">0%</div>
-                    <div class="text-xs text-purple-600 mt-1">Réponses correctes</div>
+            <!-- Weekly Calendar -->
+            <div class="bg-white rounded-xl shadow-sm p-6 mb-8">
+                <h2 class="text-lg font-semibold mb-4">Cette semaine</h2>
+                <div class="grid grid-cols-7 gap-4" id="weekly-tracker">
+                    <!-- Days will be dynamically populated -->
                 </div>
             </div>
 
-            <!-- Calendrier hebdomadaire -->
-            <div class="bg-white rounded-lg p-4">
-                <div class="grid grid-cols-7 gap-2">
-                    <div class="day-container text-center" data-day="1">
-                        <div class="text-sm text-gray-600 mb-1">Lun</div>
-                        <div class="w-10 h-10 rounded-full mx-auto flex items-center justify-center bg-slate-100"></div>
-                    </div>
-                    <div class="day-container text-center" data-day="2">
-                        <div class="text-sm text-gray-600 mb-1">Mar</div>
-                        <div class="w-10 h-10 rounded-full mx-auto flex items-center justify-center bg-slate-100"></div>
-                    </div>
-                    <div class="day-container text-center" data-day="3">
-                        <div class="text-sm text-gray-600 mb-1">Mer</div>
-                        <div class="w-10 h-10 rounded-full mx-auto flex items-center justify-center bg-slate-100"></div>
-                    </div>
-                    <div class="day-container text-center" data-day="4">
-                        <div class="text-sm text-gray-600 mb-1">Jeu</div>
-                        <div class="w-10 h-10 rounded-full mx-auto flex items-center justify-center bg-slate-100"></div>
-                    </div>
-                    <div class="day-container text-center" data-day="5">
-                        <div class="text-sm text-gray-600 mb-1">Ven</div>
-                        <div class="w-10 h-10 rounded-full mx-auto flex items-center justify-center bg-slate-100"></div>
-                    </div>
-                    <div class="day-container text-center" data-day="6">
-                        <div class="text-sm text-gray-600 mb-1">Sam</div>
-                        <div class="w-10 h-10 rounded-full mx-auto flex items-center justify-center bg-slate-100"></div>
-                    </div>
-                    <div class="day-container text-center" data-day="7">
-                        <div class="text-sm text-gray-600 mb-1">Dim</div>
-                        <div class="w-10 h-10 rounded-full mx-auto flex items-center justify-center bg-slate-100"></div>
-                    </div>
-                </div>
+            <!-- Learning Modes -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-6 mb-8">
+                <button class="mode-card active" data-mode="flashcards">
+                    <div class="mode-title">Flashcards</div>
+                    <div class="mode-description">Apprentissage rapide</div>
+                </button>
+                <button class="mode-card" data-mode="quiz">
+                    <div class="mode-title">Quiz</div>
+                    <div class="mode-description">Test de connaissances</div>
+                </button>
+                <button class="mode-card" data-mode="exam">
+                    <div class="mode-title">Épreuves</div>
+                    <div class="mode-description">Mode concours</div>
+                </button>
+                <button class="mode-card" data-mode="phrases">
+                    <div class="mode-title">Phrases</div>
+                    <div class="mode-description">Construction</div>
+                </button>
             </div>
-        </div>
 
-        <!-- Filtres et Navigation -->
-        <div class="grid grid-cols-2 gap-4 mb-6">
-            <div class="relative">
-                <select id="category-filter" class="w-full p-3 bg-white rounded-lg shadow-sm appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    <option value="all">Toutes les catégories</option>
-                    <option value="transitions">Mots de liaison</option>
-                    <option value="academic">Vocabulaire académique</option>
-                    <option value="analysis">Analyse et synthèse</option>
-                    <option value="essay">Rédaction d'essai</option>
-                    <option value="scientific">Vocabulaire scientifique</option>
-                </select>
-            </div>
-            <div class="relative">
-                <select id="difficulty-filter" class="w-full p-3 bg-white rounded-lg shadow-sm appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    <option value="all">Toutes les difficultés</option>
-                    <option value="1">Niveau 1 - Basique</option>
-                    <option value="2">Niveau 2 - Intermédiaire</option>
-                    <option value="3">Niveau 3 - Avancé</option>
-                    <option value="4">Niveau 4 - Expert</option>
-                </select>
+            <!-- Main Study Area -->
+            <div id="study-area" class="bg-white rounded-xl shadow-sm p-6 min-h-[400px]">
+                <!-- Content will be dynamically loaded here -->
             </div>
         </div>
 
-        <!-- Modes d'apprentissage -->
-        <div class="grid grid-cols-4 gap-4 mb-6">
-            <button onclick="setMode('flashcards')" class="mode-btn active bg-blue-600 text-white rounded-lg p-4 hover:bg-blue-700 transition-all">
-                <div class="text-center">
-                    <div class="text-lg font-medium">Flashcards</div>
-                    <div class="text-xs mt-1 opacity-75">Apprentissage rapide</div>
-                </div>
-            </button>
-            <button onclick="setMode('quiz')" class="mode-btn bg-white text-gray-800 rounded-lg p-4 hover:bg-gray-50 transition-all">
-                <div class="text-center">
-                    <div class="text-lg font-medium">Quiz</div>
-                    <div class="text-xs mt-1 opacity-75">Test de connaissances</div>
-                </div>
-            </button>
-            <button onclick="setMode('exam')" class="mode-btn bg-white text-gray-800 rounded-lg p-4 hover:bg-gray-50 transition-all">
-                <div class="text-center">
-                    <div class="text-lg font-medium">Épreuves</div>
-                    <div class="text-xs mt-1 opacity-75">Mode concours</div>
-                </div>
-            </button>
-            <button onclick="setMode('phrases')" class="mode-btn bg-white text-gray-800 rounded-lg p-4 hover:bg-gray-50 transition-all">
-                <div class="text-center">
-                    <div class="text-lg font-medium">Phrases</div>
-                    <div class="text-xs mt-1 opacity-75">Construction</div>
-                </div>
-            </button>
-        </div>
-
-        <!-- Zone principale -->
-        <div id="main-content" class="bg-white rounded-xl shadow-sm p-6 min-h-[400px] relative">
-            <!-- Le contenu sera injecté ici dynamiquement -->
-        </div>
-
-        <!-- Panel de statistiques -->
-        <div id="stats-panel" class="mt-6 bg-white rounded-xl shadow-sm p-6">
-            <div class="grid grid-cols-2 gap-6">
-                <div class="bg-gradient-to-br from-slate-50 to-slate-100 rounded-xl p-4">
-                    <canvas id="progress-chart"></canvas>
-                </div>
-                <div class="bg-gradient-to-br from-slate-50 to-slate-100 rounded-xl p-4">
-                    <canvas id="category-chart"></canvas>
-                </div>
+        <!-- Footer -->
+        <footer class="bg-white border-t border-gray-100 py-4">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-gray-500">
+                MP English Trainer - Préparation intensive aux concours
             </div>
-        </div>
+        </footer>
     </div>
 
-    <script>
-        // Configuration
-        const CONFIG = {
-            examDate: new Date('2024-04-28'),
-            dailyGoalBase: 50,
-            goalIncreaseFactor: 1.1,
-            streakBonus: {
-                3: 1.2,  // 20% bonus après 3 jours
-                7: 1.5,  // 50% bonus après 7 jours
-                14: 2.0  // 100% bonus après 14 jours
-            }
-        };
+    <!-- Loading Screen -->
+    <div id="loading-screen" class="fixed inset-0 bg-white bg-opacity-90 flex items-center justify-center z-50 hidden">
+        <div class="loading-spinner"></div>
+    </div>
 
-        // État de l'application
-        const state = {
-            mode: 'flashcards',
-            currentCard: null,
-            showingAnswer: false,
-            dailyStats: {
-                cards: 0,
-                correct: 0,
-                streak: 0,
-                bestStreak: 0,
-                lastStudyDate: null
-            },
-            filters: {
-                category: 'all',
-                difficulty: 'all'
-            },
-            progress: {
-                mastered: new Set(),
-                reviewing: new Set(),
-                learning: new Set()
-            },
-            sessionStats: {
-                startTime: Date.now(),
-                cardsStudied: 0,
-                correctAnswers: 0
-            }
-        };
-
-        // Gestionnaire de données
-        class DataManager {
-            static cards = [
-                // Les cartes existantes restent ici
-                // Nous ajouterons le vocabulaire complet plus tard
-            ];
-
-            static getFilteredCards() {
-                return this.cards.filter(card => {
-                    const categoryMatch = state.filters.category === 'all' || 
-                                       card.category === state.filters.category;
-                    const difficultyMatch = state.filters.difficulty === 'all' || 
-                                          card.difficulty.toString() === state.filters.difficulty;
-                    return categoryMatch && difficultyMatch;
-                });
-            }
-
-            static getNextCard() {
-                const filtered = this.getFilteredCards();
-                // Algorithme de sélection intelligente
-                return this.selectOptimalCard(filtered);
-            }
-
-            static selectOptimalCard(cards) {
-                // Implémentation de l'algorithme SM-2 modifié
-                const now = new Date();
-                return cards.find(card => {
-                    if (!card.nextReview) return true;
-                    return new Date(card.nextReview) <= now;
-                }) || cards[0];
-            }
-        }
-
-        // Gestionnaire d'interface
-        class UIManager {
-            static updateProgress() {
-                const progress = (state.dailyStats.cards / CONFIG.dailyGoalBase) * 100;
-                document.getElementById('progress-bar').style.width = `${Math.min(100, progress)}%`;
-                document.getElementById('current-cards').textContent = state.dailyStats.cards;
-                document.getElementById('target-cards').textContent = CONFIG.dailyGoalBase;
-            }
-
-            static updateStats() {
-                document.getElementById('streak').textContent = state.dailyStats.streak;
-                document.getElementById('best-streak').textContent = state.dailyStats.bestStreak;
-                
-                const accuracy = state.dailyStats.cards > 0 
-                    ? Math.round((state.dailyStats.correct / state.dailyStats.cards) * 100)
-                    : 0;
-                document.getElementById('accuracy').textContent = `${accuracy}%`;
-                
-                const masteredCount = state.progress.mastered.size;
-                const totalCards = DataManager.cards.length;
-                document.getElementById('mastered').textContent = `${masteredCount}/${totalCards}`;
-            }
-
-            static updateCalendar() {
-                const today = new Date();
-                const dayElements = document.querySelectorAll('.day-container');
-                
-                dayElements.forEach(el => {
-                    const dayNum = parseInt(el.dataset.day);
-                    const circle = el.querySelector('div:last-child');
-                    
-                    // Logique pour déterminer si le jour a été complété
-                    const isCompleted = state.dailyStats.lastStudyDate === today.toDateString();
-                    
-                    if (isCompleted) {
-                        circle.classList.add('bg-green-500');
-                        circle.classList.remove('bg-slate-100');
-                    }
-                });
-            }
-
-            static showCard(card) {
-                const content = document.getElementById('main-content');
-                
-                if (state.showingAnswer) {
-                    content.innerHTML = this.getAnswerTemplate(card);
-                } else {
-                    content.innerHTML = this.getQuestionTemplate(card);
-                }
-            }
-
-            static get
+    <!-- Scripts will be loaded based on the module system -->
+    <script src="./core/init.js" type="module"></script>
+</body>
+</html>
